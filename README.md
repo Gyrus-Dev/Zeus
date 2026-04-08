@@ -7,263 +7,388 @@
  ███╔╝  ██╔══╝  ██║   ██║╚════██║
 ███████╗███████╗╚██████╔╝███████║
 ╚══════╝╚══════╝ ╚═════╝ ╚══════╝
-             ╰─ SQL Server AI Assistant ─╯
+                    ╰─ by Gyrus Inc ─╯
 ```
 
 **An open-source, self-hosted agentic framework that turns plain English into SQL Server operations.**
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](#license)
+[![Python](https://img.shields.io/badge/python-3.11.10-blue?logo=python)](https://www.python.org/)
 [![Models](https://img.shields.io/badge/models-Claude%20%7C%20Gemini%20%7C%20OpenAI-green)](#model-provider)
 [![SQL%20Server](https://img.shields.io/badge/built%20for-SQL%20Server-CC2927?logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
+[![Discord](https://img.shields.io/badge/community-Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/fErydWMv)
 
-[**Quick Start**](#quick-start) · [**Safety**](#safety) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Skills**](#skills) · [**Security**](#security) · [**Discord**](https://discord.gg/fErydWMv)
+[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Discord**](https://discord.gg/fErydWMv) · [**Get in Touch**](#get-in-touch)
+
+If you find Zeus useful, please consider giving it a star - it helps others discover the project!
 
 </div>
 
 ---
 
-## What Is Zeus?
+## What is Zeus?
 
-Zeus is a self-hosted, multi-agent SQL Server assistant that helps you manage
-SQL Server infrastructure in plain English.
+Zeus is a self-hosted, multi-agent SQL Server control plane built by [Gyrus Inc](https://www.thegyrus.com) that lets you manage your SQL Server environment in plain English.
+Learn more at https://www.thegyrus.com
 
-It is designed for:
+```
+"create a new schema for finance reporting"
+  → Generates and runs the SQL in dependency order
 
-- database and schema creation
-- table, index, view, function, procedure, and trigger workflows
-- SQL Server Agent job setup
-- users, roles, and grants
-- row-level security and column-level permission patterns
-- read-only inspection through system catalog and information schema views
-- performance and operational monitoring through SQL Server DMVs
+"show me which indexes are missing on my busiest tables"
+  → Inspects SQL Server metadata and DMVs, then summarizes the findings
 
-Unlike SaaS copilots, Zeus runs in your environment, uses your model provider,
-and can be customized for your standards and guardrails.
+"why are queries blocking in production?"
+  → Pulls live operational data and explains the likely cause
+```
+
+Unlike SaaS copilots, Zeus runs in your environment, uses your model provider, and can be customized for your standards and guardrails.
+
+---
 
 ## Why Zeus?
 
-Building and governing SQL Server infrastructure usually means switching between
-manual SQL, admin tools, scripts, and tribal knowledge.
+Building and governing SQL Server infrastructure usually means switching between manual SQL, admin tools, scripts, and tribal knowledge. Zeus brings that into one governed workflow.
 
-Zeus brings that into one governed workflow:
+Beyond object creation, Zeus helps across the full lifecycle:
+- **Database engineering** (schemas, tables, views, procedures, triggers, indexes, jobs) - so delivery teams can move faster with repeatable SQL Server patterns
+- **Administration** (logins, users, roles, grants, database access) - so access and platform setup stay consistent
+- **Operations and monitoring** (DMVs, blocking, sessions, connections, performance checks) - so troubleshooting is faster and more explainable
+- **Security workflows** (row-level security, column-level permissions, policy-oriented access controls) - so sensitive data access can be governed in a structured way
 
-- natural-language requests
-- manager-driven planning
-- one-step-at-a-time execution
-- validation after each step
-- centralized execution safety
-- SQL Server-specific routing and inspection
-
-This makes Zeus useful for both greenfield setup and day-2 operations.
+All from natural language, in minutes.
 
 | | |
 |---|---|
-| Self-hosted | Zeus runs in your environment. Credentials stay local. |
-| Bring your own model | Supports Google, Anthropic, and OpenAI-based model configurations. |
-| SQL Server specific | Built around SQL Server objects, DMVs, permissions, and administration workflows. |
-| Safe by design | `DROP` is blocked outright and destructive operations are tightly controlled. |
-| Inspection-first | Zeus can inspect existing infrastructure before planning changes. |
-| Extensible | Skills and prompts can be adapted for your naming conventions and operating standards. |
+| Self-hosted | Zeus runs in your environment. Credentials stay local. Every line of logic is readable and modifiable. |
+| Bring your own model | Works with OpenAI, Anthropic Claude, and Google Gemini out of the box. Swap providers with configuration instead of rewiring the system. |
+| Purpose-built for SQL Server | Zeus is built around SQL Server objects, DMVs, permissions, administration workflows, and operational inspection. |
+| Safe by design | Destructive SQL is restricted, execution is centralized, and the manager validates outcomes before continuing. |
+| Inspection-first | Zeus can inspect live infrastructure before planning changes, reducing blind execution and duplicate work. |
+| Natural language all the way | Create objects, inspect metadata, investigate operational issues, and review access patterns from plain English. |
+
+> Want to see it in action? [Schedule a demo →](mailto:priyank@thegyrus.com)
 
 ---
 
 ## Quick Start
 
 ```bash
+git clone https://github.com/Gyrus-Dev/Zeus.git
 cd zeus
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
+```
+
+Copy `.env.example` to `.env`, fill in your SQL Server credentials and model API key (see [Configure](#configure)), then:
+
+```bash
 python -m src.sql_server_ai.objagents.main
 ```
 
+> Full setup details - model providers, SQL Server connection settings, and runtime options - are in [Setup](#setup) below.
+
+---
+
 ## Safety
 
-Zeus enforces both prompt-level and code-level safety controls.
+Zeus enforces two independent safeguards before any query reaches SQL Server.
 
-### Layer 1: Agent Instructions
+### Layer 1 - Agent instructions (prompt-level)
 
-The manager and specialists are instructed to:
+Every agent prefers additive or minimally destructive SQL patterns where possible. Agents are instructed to inspect before acting, execute one step at a time, validate each outcome, and avoid unsafe SQL unless a specific workflow explicitly requires it.
 
-- inspect before acting where appropriate
-- execute one step at a time
-- validate outcomes after every delegated step
-- avoid unsafe or destructive SQL patterns
+### Layer 2 - `execute_query` safety gate (code-level)
 
-### Layer 2: Execution Safety Gate
+A centralized execution tool intercepts every statement before it reaches SQL Server.
 
-Zeus centralizes SQL execution through a shared tool.
+- **`DROP`** - blocked outright.
+- **`TRUNCATE`** - requires explicit approval.
+- **Execution flow** - results are recorded in state so the manager can validate before the next step.
 
-Key guardrails include:
+```
+User request
+     |
+     v
+Agent generates SQL
+     |
+     v  execute_query safety gate
+     |   |- contains "DROP"?      -> blocked
+     |   |- contains "TRUNCATE"?  -> requires approval
+     |   `- otherwise              -> passed through
+     |
+     v
+execute_query() -> SQL Server
+```
 
-- `DROP` is blocked outright
-- `TRUNCATE` requires explicit approval
-- the manager validates session state before moving to the next step
-
-This gives Zeus a more controlled operating model than direct model-to-SQL
-execution.
+Because Layer 2 is enforced in code, not only in prompts, it gives Zeus a more reliable control point than direct model-to-SQL execution.
 
 ---
 
 ## Architecture
 
-Zeus uses a manager-led multi-agent hierarchy.
-
-```text
-User
-  -> Zeus CLI
-  -> SQLSERVER_ARCHITECT
-  -> Pillar agent
-  -> Specialist agent
-  -> execute_query
-  -> SQL Server
-  -> Session state validation
-  -> Final response
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 CLI (Rich + prompt_toolkit)                 │
+└──────────────────────────────┬───────────────────────────────┘
+                               │ user message
+                               v
+┌──────────────────────────────────────────────────────────────┐
+│                 SQLSERVER_ARCHITECT (Manager)               │
+│   Classifies intent · plans work · delegates one step at    │
+│   a time · validates results through state                  │
+└──────┬──────────┬──────────┬────────────┬────────────┬──────┘
+       v          v          v            v            v
+   DATA      ADMINISTRATOR  SECURITY   INSPECTOR   ACCOUNT
+ ENGINEER                  ENGINEER    PILLAR      MONITOR
+       \___________ _________ _________ _________ _________/
+                               |
+                               v
+                         execute_query() -> SQL Server
+                               |
+                               v
+                         session state validation
 ```
 
-### Pillars
+### Agent Pillars
 
-Zeus routes work across these main pillars:
+| Pillar | Role |
+|---|---|
+| **SQLSERVER_ARCHITECT** | Manager - plans, routes, validates |
+| **DATA_ENGINEER** | Databases, schemas, tables, indexes, views, procedures, functions, triggers, SQL Server Agent jobs |
+| **ADMINISTRATOR** | Logins, users, roles, grants, access configuration |
+| **SECURITY_ENGINEER** | Row-level security and column-level permission patterns |
+| **INSPECTOR_PILLAR** | Read-only inspection of SQL Server metadata and catalog state |
+| **ACCOUNT_MONITOR** | Query stats, blocking, sessions, connections, and operational health |
+| **RESEARCH_AGENT** | Documentation and best-practice fallback |
 
-- `DATA_ENGINEER`
-  Databases, schemas, tables, indexes, views, procedures, functions, triggers, jobs
-- `ADMINISTRATOR`
-  Logins, users, roles, grants
-- `SECURITY_ENGINEER`
-  Row-level security and column-level permissions
-- `INSPECTOR_PILLAR`
-  Read-only inspection of SQL Server objects
-- `ACCOUNT_MONITOR`
-  Query stats, connections, blocking, and other operational monitoring
-- `RESEARCH_AGENT`
-  Documentation and best-practice lookup
+### How It Works
 
-### Execution Model
-
-The manager:
-
-1. classifies the request
-2. inspects existing infrastructure where needed
-3. creates a high-level execution plan
-4. delegates one task at a time
-5. validates success from session state before continuing
-
-This is one of Zeus’s core control-plane behaviors.
+1. **You type** a natural language request.
+2. **The Manager** classifies intent and creates an execution plan.
+3. **Pillar agents** receive delegated tasks one at a time.
+4. **Specialist agents** generate and execute SQL Server statements through the shared execution tool.
+5. **After every step**, the manager validates success from session state before continuing.
+6. **CLI output** shows execution progress and tool activity.
+7. **On exit**, Zeus can preserve the executed query trail for later review.
 
 ---
 
-## Setup
+## Spotlight Features
 
-### Requirements
+### Natural Language SQL Server Administration
 
-- Python 3.11+
-- SQL Server reachable from the Zeus runtime
-- ODBC Driver 18 for SQL Server
-- a supported model provider
+Use plain English to perform common SQL Server administration workflows.
 
-### Configure
+```
+"create a login and user for the analytics team"
+"set up a new schema for finance"
+"grant read access to the reporting role"
+```
 
-Use [`.env.example`](./.env.example) as the starting point.
-
-Main configuration groups:
-
-- SQL Server connection
-- app identity
-- model provider
-- optional observability
-- debug and feature flags
-
-### SQL Server Connection
-
-Configure:
-
-- `SQLSERVER_HOST`
-- `SQLSERVER_PORT`
-- `SQLSERVER_USER`
-- `SQLSERVER_PASSWORD`
-- `SQLSERVER_DATABASE`
-- `SQLSERVER_DRIVER`
-- `SQLSERVER_TRUST_SERVER_CERTIFICATE`
-
-### App Identity
-
-Configure:
-
-- `APP_USER_NAME`
-- `APP_USER_ID`
-- `APP_NAME`
+Zeus routes these requests through SQL Server-specific agents that understand object dependencies, access patterns, and execution order.
 
 ---
 
-## Model Provider
+### Metadata Inspection and Inventory
+
+Zeus can inspect SQL Server infrastructure before taking action.
+
+```
+"show me all tables in the sales schema"
+"list stored procedures in reporting"
+"check whether this index already exists"
+```
+
+This supports discovery-first operations and reduces duplicate or unsafe changes.
+
+---
+
+### Operational Monitoring and Troubleshooting
+
+Zeus can answer day-2 operational questions using SQL Server metadata and DMV-style inspection.
+
+```
+"why is the database slow right now?"
+"show blocking sessions"
+"which queries are consuming the most resources?"
+```
+
+This makes Zeus useful not just for build workflows, but also for operations and incident investigation.
+
+---
+
+### Access and Security Workflows
+
+Zeus helps with governed access setup and security-related SQL Server patterns.
+
+Examples include:
+- users and logins
+- roles and grants
+- row-level security patterns
+- column-level permission handling
+- schema-scoped access configuration
+
+---
+
+### Model Flexibility
 
 Zeus supports multiple model-provider configurations.
-
-Supported today:
 
 - Google Gemini
 - Anthropic via LiteLLM
 - OpenAI via LiteLLM
 
-This means you can change model strategy without changing the Zeus agent
-hierarchy.
+That means the orchestration layer can remain stable even if your model strategy changes.
 
 ---
 
-## Skills
+## SQL Server Objects Supported
 
-Zeus includes SQL Server-specific skills to improve repeatability and enforce
-domain guidance.
+<details>
+<summary><strong>Data Engineering</strong></summary>
 
-Examples include:
+Databases · Schemas · Tables · Indexes · Views · Stored Procedures · Functions · Triggers · SQL Server Agent Jobs
 
-- `sqlserver-create-database`
-- `sqlserver-create-schema`
-- `sqlserver-create-table`
-- `sqlserver-create-index`
-- `sqlserver-create-view`
-- `sqlserver-create-function`
-- `sqlserver-create-procedure`
-- `sqlserver-create-trigger`
-- `sqlserver-create-user`
-- `sqlserver-create-role`
-- `sqlserver-naming-conventions`
+</details>
 
-These skills act as structured guidance for common object types and enterprise
-standards.
+<details>
+<summary><strong>Administration</strong></summary>
 
----
+Logins · Users · Roles · Grants · Database access configuration
 
-## Open Source Notes
+</details>
 
-Zeus is set up to be publishable as a standalone open-source project.
+<details>
+<summary><strong>Security</strong></summary>
 
-This directory includes:
+Row-level security workflows · Column-level permission patterns
 
-- a project README
-- a sanitized `.env.example`
-- an Apache 2.0 license
-- a project-local security policy
+</details>
 
-Before publishing or sharing Zeus:
+<details>
+<summary><strong>Inspection and Monitoring</strong></summary>
 
-- keep live credentials only in local `.env`
-- do not commit `zeus/.env`
-- review git history for accidental secret exposure
-- review screenshots, prompts, and docs for internal names or data
+System catalog inspection · Information schema discovery · Query stats · Sessions · Connections · Blocking and operational checks
 
-Zeus currently exposes its main open-source experience through the CLI entrypoint
-shown above.
+</details>
 
 ---
 
-## Security
+## Setup
 
-See [SECURITY.md](./SECURITY.md) for vulnerability reporting and release-safety guidance.
+### Prerequisites
 
-## Role In The Ecosystem
+- Python 3.11.10
+- A reachable SQL Server instance
+- ODBC Driver 18 for SQL Server
+- An API key for your chosen model provider
 
-Zeus can run as a standalone SQL Server assistant, or it can be coordinated by
-`LEO` in cross-platform workflows that also involve Snowflake and Confluent.
+### Install
+
+```bash
+git clone https://github.com/Gyrus-Dev/Zeus.git
+cd zeus
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Configure
+
+Create a `.env` file in the project root by copying the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your values - refer to `.env.example` for all available variables and their descriptions.
+
+#### SQL Server Connection
+
+| Variable | Required | Description |
+|---|---|---|
+| `SQLSERVER_HOST` | **Yes** | SQL Server hostname or IP |
+| `SQLSERVER_PORT` | **Yes** | SQL Server port |
+| `SQLSERVER_USER` | **Yes** | SQL Server username |
+| `SQLSERVER_PASSWORD` | **Yes** | SQL Server password |
+| `SQLSERVER_DATABASE` | No | Default database |
+| `SQLSERVER_DRIVER` | No | ODBC driver name |
+| `SQLSERVER_TRUST_SERVER_CERTIFICATE` | No | Trust server certificate for local/dev environments |
+
+#### Application Identity
+
+| Variable | Required | Description |
+|---|---|---|
+| `APP_USER_NAME` | **Yes** | Display name shown in session state |
+| `APP_USER_ID` | **Yes** | Unique user ID for session tracking |
+| `APP_NAME` | **Yes** | Application name for session scoping |
+
+#### Model Provider
+
+| Variable | Required | Description |
+|---|---|---|
+| `MODEL_PROVIDER` | No | `google` (default) · `openai` · `anthropic` |
+| `GOOGLE_API_KEY` | If `google` | API key for Gemini models |
+| `OPENAI_API_KEY` | If `openai` | API key for OpenAI models |
+| `ANTHROPIC_API_KEY` | If `anthropic` | API key for Claude models |
+| `MODEL_PRIMARY` | No | Override the primary model |
+| `MODEL_THINKING` | No | Override the reasoning model |
+
+## CLI Features
+
+- terminal-first interactive experience
+- execution progress visibility
+- debug mode for agent payloads and generated code
+- centralized SQL execution feedback
+
+## Project Structure
+
+```text
+zeus/
+├── src/sql_server_ai/
+│   ├── objagents/
+│   ├── adksession.py
+│   ├── adkstate.py
+│   └── adkrunner.py
+├── skills/
+├── .env.example
+├── README.md
+└── requirements.txt
+```
+
+## Tech Stack
+
+- Python 3.11
+- Google ADK
+- LiteLLM
+- Rich
+- prompt_toolkit
+- pyodbc / SQL Server ODBC driver
+
+## Community
+
+- Join the Discord community: [https://discord.gg/fErydWMv](https://discord.gg/fErydWMv)
+
+## Contributing
+
+Contributions, bug reports, and documentation improvements are welcome.
+
+## Build Your Own Zeus
+
+Zeus is designed to be adaptable. You can customize prompts, skills, guardrails, and routing behavior to match your SQL Server standards and operating model.
+
+## Enterprise
+
+If you want Zeus adapted for your environment, internal standards, or multi-system workflows, reach out to Gyrus.
+
+## Get in Touch
+
+- Website: [https://www.thegyrus.com](https://www.thegyrus.com)
+- Email: [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
+- Discord: [https://discord.gg/fErydWMv](https://discord.gg/fErydWMv)
+
+## License
+
+This project is licensed under the Apache 2.0 License. See [LICENSE](./LICENSE).
