@@ -13,6 +13,15 @@
 **An open-source, self-hosted agentic framework that turns plain English into SQL Server operations.**
 
   ---                                                                                                                                                                                                                
+  ### 🛡️ Trusted & Validated                                                                                                                                                                                         
+  **Accelerated by the Confluent Accelerator Program for AI Startups (Cohort-3).**                                                                                                                                   
+  Zeus is designed as a professional control plane, incorporating architectural standards validated by the Confluent AI ecosystem.                                                                                   
+                                                                                                                                                                                                                     
+  🚀 **Get Started Faster:** Need help deploying Zeus or want to see the latest SQL Server agent recipes?                                                                                                            
+  [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other database architects and the Gyrus team.                                                                                 
+  ---    
+
+  ---                                                                                                                                                                                                                
   ### 🚀 Get Started Faster                                                                                                                                                                                          
   **Need help deploying Zeus or want to see the latest SQL Server agent recipes?**                                                                                                                                   
   [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other database architects and the Gyrus team.                                                                                 
