@@ -12,6 +12,12 @@
 
 **An open-source, self-hosted agentic framework that turns plain English into SQL Server operations.**
 
+  ---                                                                                                                                                                                                                
+  ### 🚀 Get Started Faster                                                                                                                                                                                          
+  **Need help deploying Zeus or want to see the latest SQL Server agent recipes?**                                                                                                                                   
+  [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other database architects and the Gyrus team.                                                                                 
+  ---   
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](#license)
 [![Python](https://img.shields.io/badge/python-3.11.10-blue?logo=python)](https://www.python.org/)
 [![Models](https://img.shields.io/badge/models-Claude%20%7C%20Gemini%20%7C%20OpenAI-green)](#model-provider)
@@ -217,6 +223,9 @@ Zeus can answer day-2 operational questions using SQL Server metadata and DMV-st
 
 This makes Zeus useful not just for build workflows, but also for operations and incident investigation.
 
+ > **Pro Tip:** Encountering a complex blocking issue or performance bottleneck? Describe the scenario in the `#help-and-support` channel on our **[Discord](https://discord.gg/GpgVzJ6ku)**, and we'll help you    
+craft the perfect agent sequence to diagnose it. 
+
 ---
 
 ### Access and Security Workflows
@@ -275,6 +284,18 @@ System catalog inspection · Information schema discovery · Query stats · Sess
 </details>
 
 ---
+
+  ## 🤝 Join the Ecosystem                                                                                                                                                                                           
+                                                                                                                                                                                                                     
+  Zeus is open-source and community-driven. We aren't just building a tool; we're creating a hub for Agentic Data Ops across all major platforms. Join our Discord to:                                               
+                                                                                                                                                                                                                     
+  * **🛠️ Get Agent Recipes:** Discover the most effective prompt sequences for automating SQL Server migrations and performance tuning.                                                                              
+  * **🗺️ Influence the Roadmap:** Vote on new features and tell us which SQL Server operational patterns we should automate next.                                                                                    
+  * **⚡ Direct Access:** Get real-time architectural guidance and support from the creators at Gyrus Inc.                                                                                                           
+  * **🧪 Beta Access:** Get early access to new specialist agents and experimental pillars before they hit the main branch.                                                                                          
+                                                                                                                                                                                                                     
+  [**👉 Enter the Gyrus Discord**](https://discord.gg/GpgVzJ6ku)                                                                                                                                                     
+```
 
 ## Setup
 
